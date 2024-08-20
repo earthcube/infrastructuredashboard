@@ -1,7 +1,10 @@
 import streamlit as st
 import utils
-import datetime
-from dagster_graphql import DagsterGraphQLClient
+from datetime import datetime, timedelta
+
+# TODO calculate a timestamp about a week back.
+failuresfrom = datetime.now() - timedelta(days=7)
+failuresfrom_ts = failuresfrom.timestamp()
 
 st.write("# Scheduler")
 
@@ -42,61 +45,71 @@ for server in servers:
     st.json(data)
 
     st.header("Success Summon Jobs")
-    query = '''
-    query FilteredRunsQuery($cursor: String) {
-  runsOrError(
-    filter: { statuses: [SUCCESS],
-    pipelineName: "summon_and_release_job" ,
-       createdAfter: 1720000000 
-       }
-    cursor: $cursor
-    limit: 10
-    ) {
-    __typename
-    ... on Runs {
-      results {
-        runId
-        jobName
-        status
-        runConfigYaml
-        startTime
-        endTime
-      }
-    }
-  }
-}
-'''
+    part1 = '''
+        query FilteredRunsQuery($cursor: String) {
+      runsOrError(
+            filter: { statuses: [SUCCESS],
+            
+    
+           pipelineName: "summon_and_release_job" ,
+    '''
+
+    part2 = "createdAfter: %i" % failuresfrom_ts
+    part3 = '''          }
+            cursor: $cursor
+            limit: 10
+            ) {
+            __typename
+            ... on Runs {
+              results {
+                runId
+                jobName
+                status
+                runConfigYaml
+                startTime
+                endTime
+              }
+            }
+          }
+        }
+    '''
+    query = f"""
+    {part1}
+    {part2}
+    {part3}
+    """
     data = utils.graph_ql(st.secrets, server, query)
     st.json(data)
 
     st.header("FAILED Jobs")
-query = '''
+    part1 = '''
 query
 FilteredRunsQuery($cursor: String) {
     runsOrError(
         filter: {statuses: [FAILURE],
-
-                 createdAfter: 1720000000
+'''
+    part2 = "            createdAfter: %i" % failuresfrom_ts
+    part3 ='''
                  }
-    cursor: $cursor
-limit: 10
-) {
-    __typename
-    ...on
-Runs
-{
-    results
-{
-    runId
-jobName
-status
-runConfigYaml
-startTime
-endTime
-}
-}
-}
-}
+        cursor: $cursor
+        limit: 10
+        ) {
+            __typename
+            ...on
+            Runs
+            {
+                results
+                {
+                    runId
+                jobName
+                status
+                runConfigYaml
+                startTime
+                endTime
+                }
+        }
+    }
+    }
 '''
 
 data = utils.graph_ql(st.secrets, server, query)

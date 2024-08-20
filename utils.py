@@ -1,6 +1,7 @@
 import docker
 import requests
 from dagster_graphql import DagsterGraphQLClient
+from minio import Minio
 def servers(secrets ):
     keys = secrets.keys()
     servers = list( filter(lambda k: k.startswith("GLEANER_"), keys) )
@@ -54,3 +55,26 @@ def graph_ql(secrets,server_key, query ):
         return r.json()
     else:
         return {}
+
+def s3_client(secrets,server_key ):
+    #S3_SECRETS_KEY = "7d775d3ff3b2477099872570d0067077"
+    #S3_ACCESS_KEY = "aa58777b74cc48af932797762a22e8cc"
+    #S3_ENDPOINT = "oss.geocodes-aws-dev.earthcube.org"
+    #S3__PORT = 443
+    #S3__USE_SSL = true
+    #S3__BUCKET = "test"
+    s3_endpoint = secrets[server_key].S3_ENDPOINT
+    s3_access_key = secrets[server_key].S3_ACCESS_KEY
+    s3_secret_key = secrets[server_key].S3_SECRETS_KEY
+    s3_port = secrets[server_key].S3_PORT
+    s3_use_ssl = secrets[server_key].S3_USE_SSL
+    s3_bucket = secrets[server_key].S3_BUCKET
+
+    client = Minio(
+        f"{s3_endpoint}:{s3_port}",
+#        access_key=s3_access_key,
+#        secret_key=s3_secret_key,
+        secure=s3_use_ssl,
+    )
+
+    return client
