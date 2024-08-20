@@ -4,3 +4,4 @@ pandas
 sparql_dataframe
 docker
 minio
+dagster-graphql

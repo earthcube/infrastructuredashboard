@@ -1,5 +1,6 @@
 import docker
 import requests
+from dagster_graphql import DagsterGraphQLClient
 def servers(secrets ):
     keys = secrets.keys()
     servers = list( filter(lambda k: k.startswith("GLEANER_"), keys) )
@@ -36,3 +37,20 @@ def graph_status(secrets,server_key ):
        return True
     else:
        return False
+
+# def graphql_client(secrets,server_key ):
+#     client = DagsterGraphQLClient(secrets[server_key].GRAPH_SERVER_URL)
+#     return client
+
+def graph_ql(secrets,server_key, query ):
+    url = f"{secrets[server_key].DAGSTER_GRAPHQL_URL}"
+    operation = {"operationName":"FilteredRunsQuery",
+               "variables":{},
+               "query":f"{query}"}
+    r = requests.post(url, json=operation)
+    if r.status_code == 200:
+        # get_dagster_logger().info(f'graph load response: {str(r.text)} ')
+        # '<?xml version="1.0"?><data modified="0" milliseconds="7"/>'
+        return r.json()
+    else:
+        return {}
