@@ -57,8 +57,8 @@ def graph_ql(secrets,server_key, query ):
         return {}
 
 def s3_client(secrets,server_key ):
-    #S3_SECRETS_KEY = "7d775d3ff3b2477099872570d0067077"
-    #S3_ACCESS_KEY = "aa58777b74cc48af932797762a22e8cc"
+    #S3_SECRETS_KEY =
+    #S3_ACCESS_KEY =
     #S3_ENDPOINT = "oss.geocodes-aws-dev.earthcube.org"
     #S3__PORT = 443
     #S3__USE_SSL = true
