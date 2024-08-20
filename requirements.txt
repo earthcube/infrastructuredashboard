@@ -2,5 +2,5 @@ streamlit
 streamlit_extras
 pandas
 sparql_dataframe
-docker==6.1.3
+docker
 minio
