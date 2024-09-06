@@ -1,7 +1,34 @@
 import streamlit as st
 import utils
 import datetime
+import requests
+
+import http.client
+
+http.client.HTTPConnection.debuglevel = 1
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
 st.write("# Presently Issues with a Non Environment Admin (aka read only)")
+
+st.write("Will need to be rewritten to use low level")
+# Debug in Postman.
+# a
+# pass a header with an X-API-Key
+# docker.py add a version.
+# fails:
+# GET https://portainer.geocodes-aws-dev.earthcube.org/api/endpoints/2/docker/v1.43/services
+
+# WORKS:
+# GET https://portainer.geocodes-aws-dev.earthcube.org/api/endpoints/2/docker/services
+#
+# So need to use requests to send the information directly and parse the response
+# api: https://docs.docker.com/reference/api/engine/v1.45/#tag/Service
+
 
 servers  = utils.servers(st.secrets)
 
@@ -12,6 +39,8 @@ print([k for k in servers])
 
 for server in servers:
     client = utils.docker_server_client(st.secrets,server )
+    p_api_key = st.secrets[server].PORTAINER_API_KEY
+    headers = {'X-API-Key': p_api_key}
     services = client.services.list()
     services = list(filter(lambda s: s.name.startswith("sch_"), services ))
     if len(services) == 0:

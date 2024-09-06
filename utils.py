@@ -2,20 +2,41 @@ import docker
 import requests
 from dagster_graphql import DagsterGraphQLClient
 from minio import Minio
+
+import http.client
+http.client.HTTPConnection.debuglevel = 1
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
 def servers(secrets ):
     keys = secrets.keys()
     servers = list( filter(lambda k: k.startswith("GLEANER_"), keys) )
     return servers
 
-# docker
+# PORTAINER ISSUE:
 # api: https://docs.docker.com/engine/api/v1.45/#tag/Service/operation/ServiceUpdate
 # list services
 # get service logs
+
+# Debug in Postman.
+# pass a header with an X-API-Key
+# docker.py add a version.
+# fails:
+# GET https://portainer.geocodes-aws-dev.earthcube.org/api/endpoints/2/docker/v1.43/services
+
+# WORKS:
+# GET https://portainer.geocodes-aws-dev.earthcube.org/api/endpoints/2/docker/services
+#
+# So need to use requests to send the information directly and parse the response
 
 def docker_server_client(secrets, server_key ):
     p_url = secrets[server_key].PORTAINER_API_URL
     p_api_key = secrets[server_key].PORTAINER_API_KEY
     headers = {'X-API-Key': p_api_key}
+    #client = docker.DockerClient(base_url=p_url, version=None)
     client = docker.DockerClient(base_url=p_url, version="1.43")
     # client = docker.APIClient(base_url=URL, version="1.35")
   #  get_dagster_logger().info(f"create docker client")
@@ -24,6 +45,7 @@ def docker_server_client(secrets, server_key ):
     else:
         client.api._general_configs = {"HttpHeaders": headers}
     client.api.headers['X-API-Key'] = p_api_key
+
    # get_dagster_logger().info(f" docker version {client.version()}")
 
     return client

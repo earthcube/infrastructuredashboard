@@ -8,6 +8,8 @@ At present, does not seem to work
  * log in as user
  * add an api key
 
+it's something in docker.py that does not like not having version.
+hand code up list and parsing.
 
 Dagster:
 use graphql: https://docs.dagster.io/concepts/webserver/graphql#get-a-list-of-dagster-runs
@@ -109,3 +111,16 @@ query FilteredRunsQuery($cursor: String) {
   }
 }
 ```
+
+issue with portainer
+# Debug in Postman.
+# pass a header with an X-API-Key
+# docker.py add a version.
+# fails:
+# GET https://portainer.geocodes-aws-dev.earthcube.org/api/endpoints/2/docker/v1.43/services
+
+# WORKS:
+# GET https://portainer.geocodes-aws-dev.earthcube.org/api/endpoints/2/docker/services
+#
+# So need to use requests to send the information directly and parse the response
+
