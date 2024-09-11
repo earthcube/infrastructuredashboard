@@ -10,10 +10,12 @@ log_path = 'scheduler/logs/'
 #https://stackoverflow.com/questions/51827134/comparison-between-datetime-and-datetime64ns-in-pandas
 last_week=pd.Timestamp('now',tzinfo=timezone.utc ).floor('D') + pd.Timedelta(-7, unit='D')
 
-
+st.header("Logs")
+st.write("Needs to open logs when clicked, and filter to most recent only. ")
 servers  = utils.servers(st.secrets)
 
 for server in servers:
+    st.header("Log for server {}".format(server))
     client = utils.s3_client(st.secrets, server)
     bucket = st.secrets[server]["S3_BUCKET"]
     logs = list(client.list_objects(bucket, prefix=log_path,

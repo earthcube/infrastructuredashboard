@@ -44,7 +44,9 @@ for server in servers:
 
     st.json(data)
 
-    st.header("Success Summon Jobs")
+    st.header("Successful Summon Jobs")
+    st.write("need filtering, and making it useful")
+
     part1 = '''
         query FilteredRunsQuery($cursor: String) {
       runsOrError(
@@ -82,6 +84,8 @@ for server in servers:
     st.json(data)
 
     st.header("FAILED Jobs")
+    st.write("need filtering, and making it useful. if more than a two weeks old, ignore")
+
     part1 = '''
 query
 FilteredRunsQuery($cursor: String) {

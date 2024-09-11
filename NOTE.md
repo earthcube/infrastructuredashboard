@@ -1,5 +1,11 @@
+Todo
+* infrastructure
+    * list of tenants and sources
+    * list of active sources
+* Individual source statistics
+   * some report rendering for sources, like oih 
 
-
+Notes
 Portainer API Key for readonly
 At present, does not seem to work
 
