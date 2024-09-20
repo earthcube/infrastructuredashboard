@@ -1,23 +1,27 @@
-Todo
+# Todo
 * infrastructure
-    * list of tenants and sources
-    * list of active sources
+    * list of tenants and sources (set deault to on minio scheduler/configs/gleanerconfig.yaml)
+    * list of active sources (found on minio scheduler/configs/tenant.yaml) with link to render reports
 * Individual source statistics
-   * some report rendering for sources, like oih 
+   * some report rendering for sources, like [oih dashboard](http://dashboard.oceaninfohub.org/)  [code](https://github.com/iodepo/odis-arch/tree/master/dashboard)
+       * in reports/{source}
 
-Notes
-Portainer API Key for readonly
-At present, does not seem to work
+# Notes
 
+## Portainer API Key for readonly, 
+at present, does not seem to work
+       * 
+**tested by**:
  * Created a user
  * Go to environments, add user to environment
  * log in as user
  * add an api key
 
-it's something in docker.py that does not like not having version.
-hand code up list and parsing.
+**workaround**
+it's something in docker.py that does not like not having version. 
+So, directly code up a request using the python requests library to the endpoint. Will hand code up parsing.
 
-Dagster:
+## Dagster:
 use graphql: https://docs.dagster.io/concepts/webserver/graphql#get-a-list-of-dagster-runs
 https://sched.geocodes-data-loader.earthcube.org/graphql
 
