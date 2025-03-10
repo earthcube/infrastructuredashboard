@@ -13,7 +13,7 @@ requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 def servers(secrets ):
     keys = secrets.keys()
-    servers = list( filter(lambda k: k.startswith("GLEANER_"), keys) )
+    servers = list( filter(lambda k: k.startswith("GLEANERIO_"), keys) )
     return servers
 
 # PORTAINER ISSUE:
