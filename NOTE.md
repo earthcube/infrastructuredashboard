@@ -1,10 +1,12 @@
 # Todo
 * infrastructure
-    * list of tenants and sources (set deault to on minio scheduler/configs/gleanerconfig.yaml)
+    * list of tenants and sources (set default to on minio scheduler/configs/gleanerconfig.yaml)
     * list of active sources (found on minio scheduler/configs/tenant.yaml) with link to render reports
 * Individual source statistics
    * some report rendering for sources, like [oih dashboard](http://dashboard.oceaninfohub.org/)  [code](https://github.com/iodepo/odis-arch/tree/master/dashboard)
        * in reports/{source}
+
+See [ImplementationPlan.md](./ImplementationPlan.md) for detailed implementation roadmap.
 
 # Notes
 
