@@ -38,7 +38,7 @@
 ## Phase 3: Individual Source Statistics
 
 ### 3.1 Source Report System
-- **Create report template system** inspired by [OIH Dashboard](http://dashboard.oceaninfohub.org/)
+- **Create report template system** 
 - **Implement report generation** in `reports/{source}` structure
 - **Add data visualization components** using Plotly/Altair
 - **Create automated report scheduling**
