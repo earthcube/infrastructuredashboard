@@ -50,6 +50,25 @@ def extract_prefix_from_docker_service(service_name):
             return '_'.join(parts[1:-2]) if len(parts) > 3 else parts[1]
     return None
 
+def extract_partition_from_tags(tags):
+    """Extract partition information from job tags - specifically looking for dagster/partition."""
+    if not tags:
+        return None
+    
+    # Look specifically for the dagster/partition tag
+    for tag in tags:
+        key = tag.get('key', '')
+        value = tag.get('value', '')
+        
+        # Look for dagster/partition tag specifically (case sensitive)
+        if key == 'dagster/partition':
+            return value
+        # Also check lowercase version as fallback
+        elif key.lower() == 'dagster/partition':
+            return value
+            
+    return None
+
 def get_all_jobs_by_status(server, status, created_after_timestamp=None):
     """Get ALL jobs by status without pipeline name filtering."""
     query_template = '''
@@ -73,6 +92,10 @@ def get_all_jobs_by_status(server, status, created_after_timestamp=None):
             startTime
             endTime
             creationTime
+            tags {
+              key
+              value
+            }
           }
         }
       }
@@ -136,25 +159,38 @@ def display_job_summary(jobs, job_type):
         st.caption(f"... and {len(jobs) - 3} more")
 
 def display_all_jobs_summary(jobs, job_type):
-    """Display a summary of ALL jobs with pipeline names included."""
+    """Display a summary of ALL jobs with pipeline names and partition info included."""
     if not jobs:
         st.info(f"No {job_type} jobs found")
         return
 
     st.metric(f"{job_type.title()} Jobs", len(jobs))
 
-    # Show recent jobs with pipeline names
+    # Show recent jobs with pipeline names and partition tags
     for job in jobs[:5]:  # Show top 5 most recent
         with st.container():
             job_id = job.get('runId', 'Unknown')[:8]
             pipeline_name = job.get('pipelineName', 'Unknown')
             start_time = job.get('startTime', 0)
             end_time = job.get('endTime', 0)
+            
+            # Extract partition information from tags
+            tags = job.get('tags', [])
+            partition = extract_partition_from_tags(tags)
 
             col_a, col_b = st.columns([3, 1])
 
             with col_a:
-                st.caption(f"🔧 {job_id}... | `{pipeline_name}`")
+                # Display job info with partition if available
+                if partition:
+                    st.caption(f"🔧 {job_id}... | `{pipeline_name}` | 📊 `{partition}`")
+                else:
+                    st.caption(f"🔧 {job_id}... | `{pipeline_name}`")
+                    # Debug: Show all tags for debugging
+                    if tags and st.session_state.get('show_debug_tags', False):
+                        tag_list = [f"{t.get('key', '')}:{t.get('value', '')}" for t in tags[:3]]
+                        st.caption(f"Debug - Available tags: {tag_list}")
+                
                 if start_time:
                     st.caption(f"Started: {format_timestamp(start_time)}")
 
@@ -181,6 +217,11 @@ def check_failure_alerts(failed_jobs, prefix, server_name):
 
 st.write("# 📅 Scheduler Dashboard")
 st.info("Monitoring Dagster job execution with enhanced metrics and alerts")
+
+# Debug toggle for partition troubleshooting
+st.session_state.setdefault('show_debug_tags', False)
+with st.sidebar:
+    st.session_state.show_debug_tags = st.checkbox("🔍 Debug: Show job tags", value=st.session_state.get('show_debug_tags', False))
 
 servers = utils.servers(st.secrets)
 
@@ -466,13 +507,21 @@ with tab2:
                 for job in failed_jobs:
                     with st.container():
                         job_id = job.get('runId', 'Unknown')
+                        pipeline_name = job.get('pipelineName', 'Unknown')
                         start_time = job.get('startTime', 0)
                         end_time = job.get('endTime', 0)
+                        
+                        # Extract partition information from tags
+                        tags = job.get('tags', [])
+                        partition = extract_partition_from_tags(tags)
 
                         col1, col2, col3 = st.columns([2, 1, 1])
 
                         with col1:
                             st.write(f"**🔧 Job ID:** {job_id[:12]}...")
+                            st.caption(f"Pipeline: `{pipeline_name}`")
+                            if partition:
+                                st.caption(f"Partition: `{partition}` 📊")
                             if start_time:
                                 st.caption(f"Failed: {format_timestamp(start_time)}")
 

@@ -133,14 +133,28 @@ def graph_ql(secrets, server_key, query):
         return {}
 
 def s3_client(secrets, server_key):
-    """Create MinIO/S3 client with proper authentication - legacy version."""
+    """Create MinIO/S3 client - try public access first, then authentication."""
     s3_endpoint = secrets[server_key]['S3_ADDRESS']
     s3_access_key = secrets[server_key]['S3_ACCESS_KEY']
     s3_secret_key = secrets[server_key]['S3_SECRETS_KEY']
     s3_port = secrets[server_key].get('S3_PORT', secrets[server_key].get('S3__PORT', 443))
     s3_use_ssl = secrets[server_key]['S3_USE_SSL']
 
-    # Try with authentication first
+    # Try public access first
+    try:
+        client = Minio(
+            f"{s3_endpoint}:{s3_port}",
+            secure=s3_use_ssl,
+        )
+        # Test the connection with a simple operation
+        client.bucket_exists(secrets[server_key]['S3_BUCKET'])
+        logger.info(f"S3 client created with public access for {server_key}")
+        return client
+    except Exception as public_error:
+        logger.warning(f"S3 public access failed for {server_key}: {str(public_error)}")
+        logger.info(f"Attempting authenticated access for {server_key}")
+
+    # Fall back to authenticated access
     if s3_access_key and s3_secret_key:
         try:
             client = Minio(
@@ -154,25 +168,30 @@ def s3_client(secrets, server_key):
             logger.info(f"S3 client created with authentication for {server_key}")
             return client
         except Exception as auth_error:
-            logger.warning(f"S3 authentication failed for {server_key}: {str(auth_error)}")
-            logger.info(f"Attempting public access for {server_key}")
-
-    # Fall back to public access
-    try:
-        client = Minio(
-            f"{s3_endpoint}:{s3_port}",
-            secure=s3_use_ssl,
-        )
-        logger.info(f"S3 client created with public access for {server_key}")
-        return client
-    except Exception as e:
-        logger.error(f"Error creating S3 client (public access) for {server_key}: {str(e)}")
-        raise
+            logger.error(f"S3 authentication also failed for {server_key}: {str(auth_error)}")
+            raise
+    else:
+        logger.error(f"No S3 credentials available for {server_key} and public access failed")
+        raise Exception("Both public access and authentication failed")
 
 
 def s3_client_from_config(config: ServerConfig):
-    """Create MinIO/S3 client from configuration object."""
-    # Try with authentication first
+    """Create MinIO/S3 client from configuration object - try public access first, then authentication."""
+    # Try public access first
+    try:
+        client = Minio(
+            f"{config.s3_endpoint}:{config.s3_port}",
+            secure=config.s3_use_ssl,
+        )
+        # Test the connection with a simple operation
+        client.bucket_exists(config.s3_bucket)
+        logger.info(f"S3 client created with public access for {config.name}")
+        return client
+    except Exception as public_error:
+        logger.warning(f"S3 public access failed for {config.name}: {str(public_error)}")
+        logger.info(f"Attempting authenticated access for {config.name}")
+
+    # Fall back to authenticated access
     if config.s3_access_key and config.s3_secret_key:
         try:
             client = Minio(
@@ -186,20 +205,11 @@ def s3_client_from_config(config: ServerConfig):
             logger.info(f"S3 client created with authentication for {config.name}")
             return client
         except Exception as auth_error:
-            logger.warning(f"S3 authentication failed for {config.name}: {str(auth_error)}")
-            logger.info(f"Attempting public access for {config.name}")
-
-    # Fall back to public access
-    try:
-        client = Minio(
-            f"{config.s3_endpoint}:{config.s3_port}",
-            secure=config.s3_use_ssl,
-        )
-        logger.info(f"S3 client created with public access for {config.name}")
-        return client
-    except Exception as e:
-        logger.error(f"Error creating S3 client (public access) for {config.name}: {str(e)}")
-        raise
+            logger.error(f"S3 authentication also failed for {config.name}: {str(auth_error)}")
+            raise
+    else:
+        logger.error(f"No S3 credentials available for {config.name} and public access failed")
+        raise Exception("Both public access and authentication failed")
 
 
 def get_gleaner_config(secrets, server_key: str) -> Optional[Dict[str, Any]]:
